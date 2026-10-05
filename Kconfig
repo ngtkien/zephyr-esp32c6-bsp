@@ -1,0 +1,20 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: Apache-2.0
+
+config ZEPHYR_ESP32C6_BSP
+	bool "ESP32-C6 hosted-slave BSP"
+	default y
+
+if ZEPHYR_ESP32C6_BSP
+
+rsource "drivers/Kconfig"
+
+endif # ZEPHYR_ESP32C6_BSP
+
+config ESP_C6_OTA_BOOT_PROBE
+	bool "Resolve boot image offset from otadata at load time"
+	depends on SOC_SERIES_ESP32C6
+	help
+	  The C6 image may be delivered into either ota_0 or ota_1 through
+	  ESP-IDF-style OTA. This probes otadata / candidate offsets at
+	  loader time instead of using a fixed partition offset.

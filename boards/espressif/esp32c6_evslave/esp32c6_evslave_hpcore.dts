@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2026
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * ESP32-C6-MINI-1 module as hosted SDIO slave inside the ESP32-P4
+ * Function EV board.
+ *
+ * Flash layout intentionally matches the ESP-IDF layout already on the
+ * module (from c6_firmware/partitions.esp32c6.csv) so the stock IDF
+ * 2nd-stage bootloader + otadata keep working:
+ *
+ *   0x0000  bootloader + partition table (IDF, untouched)
+ *   0x9000  nvs            16K
+ *   0xd000  otadata         8K
+ *   0xf000  phy_init        4K
+ *   0x10000 ota_0        1536K   <- app slots (either may hold this image)
+ *   0x190000 ota_1        1536K
+ */
+
+/dts-v1/;
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <espressif/esp32c6/esp32c6_mini_n4.dtsi>
+#include "esp32c6_evslave_hpcore-pinctrl.dtsi"
+
+/ {
+	model = "esp32c6_evslave HP Core";
+	compatible = "espressif,esp32c6";
+
+	chosen {
+		zephyr,sram = &sramhp;
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &ota0_partition;
+	};
+
+	/* Hosted SDIO slave interface to the P4.
+	 * Hardware unit: ESP32-C6 SDIO slave controller (ESSL).
+	 * Pins are fixed by the EV board routing:
+	 *   CLK=19 CMD=18 D0=20 D1=21 D2=22 D3=23
+	 */
+	sdio_slave0: sdio-slave {
+		compatible = "espressif,esp32c6-sdio-slave";
+		status = "okay";
+		clk-gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
+		cmd-gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
+		d0-gpios  = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+		d1-gpios  = <&gpio0 21 GPIO_ACTIVE_HIGH>;
+		d2-gpios  = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+		d3-gpios  = <&gpio0 23 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-names = "default";
+};
+
+&trng0 {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&wdt0 {
+	status = "okay";
+};
+
+&flash0 {
+	partitions {
+		ranges;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* IDF 2nd-stage bootloader + partition table live here.
+		 * Kept as a named partition so the Zephyr loader and the
+		 * esp32 flash runner can resolve the standalone boot slot.
+		 */
+		boot_partition: partition@0 {
+			compatible = "zephyr,mapped-partition";
+			label = "bootloader";
+			reg = <0x0 DT_SIZE_K(36)>;
+			read-only;
+		};
+
+		nvs_partition: partition@9000 {
+			label = "nvs";
+			reg = <0x9000 DT_SIZE_K(16)>;
+		};
+
+		otadata_partition: partition@d000 {
+			label = "otadata";
+			reg = <0xd000 DT_SIZE_K(8)>;
+		};
+
+		phy_init_partition: partition@f000 {
+			label = "phy_init";
+			reg = <0xf000 DT_SIZE_K(4)>;
+		};
+
+		ota0_partition: partition@10000 {
+			compatible = "zephyr,mapped-partition";
+			label = "ota_0";
+			reg = <0x10000 DT_SIZE_K(1536)>;
+		};
+
+		ota1_partition: partition@190000 {
+			compatible = "zephyr,mapped-partition";
+			label = "ota_1";
+			reg = <0x190000 DT_SIZE_K(1536)>;
+		};
+
+		storage_partition: partition@310000 {
+			label = "storage";
+			reg = <0x310000 DT_SIZE_K(960)>;
+		};
+	};
+};
+

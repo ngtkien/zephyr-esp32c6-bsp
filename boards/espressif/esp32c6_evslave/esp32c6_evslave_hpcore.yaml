@@ -1,0 +1,12 @@
+identifier: esp32c6_evslave/esp32c6/mini_n4/hpcore
+name: ESP32-C6-EVSlave
+vendor: espressif
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+supported:
+  - gpio
+  - watchdog
+  - uart
+  - dma

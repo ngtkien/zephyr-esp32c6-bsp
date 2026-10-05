@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Devin <devin@cognition.ai>
+Date: Sat, 4 Oct 2025 00:00:00 +0000
+Subject: [PATCH] esp32c6: resolve boot image offset from otadata at load time
+
+When a Zephyr image is delivered through ESP-IDF-style OTA (the C6 keeps
+the stock 2nd-stage bootloader + otadata), it may physically live in
+either ota_0 or ota_1. The link-time PARTITION_OFFSET(boot_partition)
+only describes one of them.
+
+With CONFIG_ESP_C6_OTA_BOOT_PROBE, call a hook provided by the
+application/BSP that resolves the actual partition offset at runtime
+(otadata decode + image scan fallback). Without the option, behavior is
+unchanged.
+---
+ soc/espressif/common/loader.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/soc/espressif/common/loader.c b/soc/espressif/common/loader.c
+index 000000000..000000001 100644
+--- a/soc/espressif/common/loader.c
++++ b/soc/espressif/common/loader.c
+@@ -139,7 +139,16 @@ void map_rom_segments(int core, struct rom_segments *map)
+ 	/* Traverse segments to fix flash offset changes due to post-build processing */
+ #ifndef CONFIG_BOOTLOADER_MCUBOOT
+ 	esp_image_segment_header_t WORD_ALIGNED_ATTR segment_hdr;
++#if defined(CONFIG_ESP_C6_OTA_BOOT_PROBE)
++	/*
++	 * The image may live in either OTA slot; let the platform resolve
++	 * the actual flash offset (otadata + image scan) at runtime.
++	 */
++	uint32_t esp_c6_boot_image_offset(void);
++	size_t offset = esp_c6_boot_image_offset();
++#else
+ 	size_t offset = PARTITION_OFFSET(boot_partition);
++#endif
+ 	bool checksum = false;
+ 	unsigned int segments = 0;
+ 	unsigned int ram_segments = 0;
+-- 
+2.47.0

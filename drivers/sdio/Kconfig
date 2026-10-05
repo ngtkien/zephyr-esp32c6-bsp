@@ -1,0 +1,11 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: Apache-2.0
+
+config ESP32C6_SDIO_SLAVE
+	bool "ESP32-C6 SDIO slave peripheral driver"
+	depends on SOC_SERIES_ESP32C6
+	select EXPERIMENTAL
+	help
+	  Zephyr port of the ESP-IDF sdio_slave driver (esp_driver_sdio),
+	  exposing the ESSL register/ring-buffer contract expected by the
+	  ESP-Hosted host on the ESP32-P4.

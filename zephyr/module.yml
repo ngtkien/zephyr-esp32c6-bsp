@@ -1,0 +1,22 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: Apache-2.0
+#
+# ==============================================================================
+# ZEPHYR OUT-OF-TREE MODULE MANIFEST — ESP32-C6 hosted slave BSP
+# ==============================================================================
+# Board + drivers + blobs for running Zephyr on the ESP32-C6-MINI-1 that acts as
+# the hosted SDIO coprocessor inside the ESP32-P4 Function EV board.
+#
+# The C6 keeps the stock ESP-IDF 2nd-stage bootloader + otadata layout so images
+# remain plain ESP app images in ota_0/ota_1 — deployable over ESP-Hosted OTA
+# via the P4-side `c6_ota` project, and roll-back-able to the ESP-IDF firmware.
+
+name: zephyr-esp32c6-bsp
+
+build:
+  cmake: .
+  kconfig: Kconfig
+
+  settings:
+    board_root: .
+    dts_root: .

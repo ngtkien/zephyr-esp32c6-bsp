@@ -1,0 +1,10 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: Apache-2.0
+#
+# The C6 keeps the stock ESP-IDF 2nd-stage bootloader (already flashed on the
+# module, reads otadata and boots ota_0/ota_1). MCUboot is intentionally not
+# used so hosted OTA stays wire-compatible with the P4 c6_ota tool.
+
+choice BOOTLOADER
+	default BOOTLOADER_NONE
+endchoice

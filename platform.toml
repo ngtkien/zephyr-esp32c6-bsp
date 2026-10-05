@@ -1,0 +1,20 @@
+# ESP32-C6 hosted slave platform contract.
+# Consumed by zephyr-bootstrap/tools/zws.py.
+
+[platform]
+id = "esp32c6-evslave"
+board = "esp32c6_evslave/esp32c6/hpcore"
+
+[zephyr]
+revision = "b25184ce15bbcb3f83a8401880351f297a59406e"
+
+[toolchain]
+required_toolchains = ["riscv64-zephyr-elf"]
+
+[flash]
+mode = "dio"
+frequency = "80m"
+size = "4MB"
+
+[[patches]]
+file = "patches/0001-esp32c6-ota-boot-probe.patch"
